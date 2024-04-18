@@ -65,7 +65,17 @@ void draw_polygon(
         float p1x = polygon_xy[i1_vtx * 2 + 0] - x;
         float p1y = polygon_xy[i1_vtx * 2 + 1] - y;
         // write a few lines of code to compute winding number (hint: use atan2)
+        float p0_size = std::sqrt(p0x * p0x + p0y * p0y);
+        float p1_size = std::sqrt(p1x * p1x + p1y * p1y);
+        float dot = p0x * p1x + p0y * p1y;
+        float cos = dot / (p0_size * p1_size);
+        float cross = p0y * p1x - p0x * p1y;
+        float sin = cross / (p0_size * p1_size);
+        float theta = std::atan2(sin, cos);
+        winding_number += theta;
       }
+      const double PI = acos(-1);
+      winding_number /= 2 * PI;
       const int int_winding_number = int(std::round(winding_number));
       if (int_winding_number == 1 ) { // if (x,y) is inside the polygon
         img_data[ih*width + iw] = brightness;
@@ -91,6 +101,40 @@ void dda_line(
   auto dx = x1 - x0;
   auto dy = y1 - y0;
   // write some code below to paint pixel on the line with color `brightness`
+  float m = dy / dx;
+  if (-1 < m && m < 1) {
+    float basex; float basey; // start position
+     // pick position that has smaller x coordinate
+    if (x0 < x1) {
+      basex = x0; basey = y0;
+    } else {
+      basex = x1; basey = y1;
+    }
+    // DDA
+    for (unsigned int dx_i = 0; dx_i < abs(dx); ++dx_i) {
+      float xi = basex + dx_i;
+      float yi = basey + m * dx_i;
+      const int iw = int(std::ceil(xi));
+      const int ih = int(std::ceil(yi));
+      img_data[ih*width + iw] = brightness;
+    }
+  } else {
+    float basex; float basey; // start position
+    // pick position that has smaller y coordinate 
+    if (y0 < y1) {
+      basex = x0; basey = y0;
+    } else {
+      basex = x1; basey = y1;
+    }
+    // DDA
+    for (unsigned int dy_i = 0; dy_i < abs(dy); ++dy_i) {
+      float xi = basex + dy_i / m;
+      float yi = basey + dy_i;
+      const int iw = int(std::ceil(xi));
+      const int ih = int(std::ceil(yi));
+      img_data[ih*width + iw] = brightness;
+    }
+  }
 }
 
 int main() {
