@@ -24,9 +24,13 @@ void main()
         // make sure the occlusion is correctly computed.
         // the mirror is behind the armadillo, so the reflected image should be behind the armadillo.
         // furthermore, make sure the occlusion is correctly computed for the reflected image.
-        //x0 = ???
-        //y0 = ???
-        //z0 = ???
+        vec3 p0 = vec3(x0, y0, z0);
+        vec3 d = dot(p0 - org, nrm) / dot(nrm, nrm) * nrm; // ミラーへの距離ベクトル
+        vec3 p1 = p0 - d; // 射影点
+        vec3 p2 = p1 - d;
+        x0 = p2.x;
+        y0 = p2.y;
+        z0 = p2.z / 2; // clipping plane対策
     }
     // do not edit below
 
