@@ -32,19 +32,59 @@ float rad_cylinder = 0.45; // radius of the cylinder
 float rad_sphere = 0.8; // radius of the sphere
 float box_size = 0.6; // size of box
 
+float rotationSdCappedCylinder(vec3 p, mat3 t)
+{
+  return sdCappedCylinder(t * p, len_cylinder, rad_cylinder);
+}
+
 /// singed distance function at the position `pos`
 float SDF(vec3 pos)
 {
   float d0 = sdCappedCylinder(pos, len_cylinder, rad_cylinder);
+  // return d0;
   // write some code to combine the signed distance fields above to design the object described in the README.md
-  return d0; // comment out and define new distance
+  mat3 t1 = mat3(1, 0, 0, 0, cos(radians(90)), -sin(radians(90)), 0, sin(radians(90)), cos(radians(90)));
+  float d1 = rotationSdCappedCylinder(pos, t1);
+  // mat3 t2 = mat3(cos(radians(90)), 0, sin(radians(90)), 0, 1, 0, -sin(radians(90)), 0, cos(radians(90)));
+  mat3 t2 = mat3(cos(radians(90)), sin(radians(90)), 0, sin(radians(90)), cos(radians(90)), 0, 0, 0, 1);
+  float d2 = rotationSdCappedCylinder(pos, t2);
+  float obj0 = min(min(d0, d1), d2);
+  
+  float b1 = sdBox(pos, vec3(box_size, box_size, box_size));
+  float s1 = sdSphere(pos, rad_sphere);
+  float obj1 = max(b1, s1);
+  
+  return max(obj1, -obj0); // comment out and define new distance
 }
 
 /// RGB color at the position `pos`
 vec3 SDF_color(vec3 pos)
 {
   // write some code below to return color (RGB from 0 to 1) to paint the object describe in README.md
-  return vec3(0., 1., 0.); // comment out and define new color
+  // return vec3(0., 1., 0.); // comment out and define new color
+
+  float d0 = sdCappedCylinder(pos, len_cylinder, rad_cylinder);
+  // return d0;
+  mat3 t1 = mat3(1, 0, 0, 0, cos(radians(90)), -sin(radians(90)), 0, sin(radians(90)), cos(radians(90)));
+  float d1 = rotationSdCappedCylinder(pos, t1);
+  mat3 t2 = mat3(cos(radians(90)), sin(radians(90)), 0, sin(radians(90)), cos(radians(90)), 0, 0, 0, 1);
+  float d2 = rotationSdCappedCylinder(pos, t2);
+  float obj0 = min(min(d0, d1), d2);
+  
+  float b1 = sdBox(pos, vec3(box_size, box_size, box_size));
+  float s1 = sdSphere(pos, rad_sphere);
+  float obj1 = max(b1, s1);
+
+  if (0 < s1) {
+    return vec3(0., 0., 1.);
+  }
+  if (0 < b1) {
+    return vec3(1., 0., 0.);
+  }
+
+  if (0 < obj0) {
+    return vec3(0., 1., 0.);
+  }
 }
 
 uniform float time; // current time given from CPU
