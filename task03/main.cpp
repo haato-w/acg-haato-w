@@ -10,6 +10,7 @@
 #include "stb_image.h"
 #include "Eigen/Core"
 #include "Eigen/Geometry"
+#include <Eigen/Dense>
 
 
 /**
@@ -67,8 +68,19 @@ void draw_3d_triangle_with_texture(
       // `bc` gives the barycentric coordinate **on the screen** and it is distorted.
       // Compute the barycentric coordinate ***on the 3d triangle** below that gives the correct texture mapping.
       // (Hint: formulate a linear system with 4x4 coefficient matrix and solve it to get the barycentric coordinate)
+      
       Eigen::Matrix4f coeff;
-      Eigen::Vector4f rhs;
+      Eigen::Vector4f rhs(0, 0, 0, 1);
+
+      coeff << q0[0], q1[0], q2[0], -s[0], 
+               q0[1], q1[1], q2[1], -s[1], 
+               q0[3], q1[3], q2[3], -1, 
+               1,     1,     1,     0;
+
+      Eigen::Vector3f tmp = coeff.partialPivLu().solve(rhs).hnormalized();
+      // Eigen::Vector4f tmp = coeff.partialPivLu().solve(rhs);
+      bc = Eigen::Vector3f(tmp[0], tmp[1], tmp[2]) / (tmp[0] + tmp[1] + tmp[2]);
+
 
       // do not change below
       auto uv = uv0 * bc[0] + uv1 * bc[1] + uv2 * bc[2]; // uv coordinate of the pixel
